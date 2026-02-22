@@ -1,0 +1,24 @@
+[
+  {
+    "id": 1,
+    "title": "Project One",
+    "description": "A short description of project one.",
+    "link": "#",
+    "image": "https://via.placeholder.com/400x240.png?text=Project+One"
+  },
+  {
+    "id": 2,
+    "title": "Project Two",
+    "description": "A short description of project two.",
+    "link": "#",
+    "image": "https://via.placeholder.com/400x240.png?text=Project+Two"
+  },
+  {
+    "id": 3,
+    "title": "Project Three",
+    "description": "A short description of project three.",
+    "link": "#",
+    "image": "https://via.placeholder.com/400x240.png?text=Project+Three"
+  }
+]
+
