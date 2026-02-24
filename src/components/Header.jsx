@@ -1,67 +1,190 @@
-import React, { useState, useEffect } from 'react'
-import { Link, NavLink } from 'react-router-dom'
+import React, { useState, useEffect, useRef } from 'react'
+import { Link, NavLink, useLocation } from 'react-router-dom'
 
 export default function Header() {
   const [dark, setDark] = useState(() => {
     try { return localStorage.getItem('theme') === 'dark' }
     catch { return false }
   })
+  const [mobileOpen, setMobileOpen] = useState(false)
+  // Controlled open state for Features submenu to support smooth slide/fade and keyboard accessibility
+  const [featuresOpen, setFeaturesOpen] = useState(false)
+  const navRef = useRef(null)
+  const underlineRef = useRef(null)
+  const location = useLocation()
 
   useEffect(() => {
     const root = document.documentElement
-    if(dark) root.classList.add('dark')
+    if (dark) root.classList.add('dark')
     else root.classList.remove('dark')
     try { localStorage.setItem('theme', dark ? 'dark' : 'light') } catch {}
   }, [dark])
 
+  useEffect(() => {
+    // position underline on route change (active link)
+    const nav = navRef.current
+    if (!nav) return
+    const active = nav.querySelector('.nav-link[aria-current="page"]')
+    moveUnderlineTo(active)
+  }, [location])
+
+  useEffect(() => {
+    const handleResize = () => {
+      const nav = navRef.current
+      if (!nav) return
+      const active = nav.querySelector('.nav-link[aria-current="page"]')
+      moveUnderlineTo(active)
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  useEffect(() => {
+    const nav = navRef.current
+    if (!nav) return
+    const links = Array.from(nav.querySelectorAll('.nav-link'))
+
+    function onEnter(e){
+      moveUnderlineTo(e.currentTarget)
+    }
+    function onLeave(){
+      const active = nav.querySelector('.nav-link[aria-current="page"]')
+      moveUnderlineTo(active)
+    }
+
+    links.forEach(l => {
+      l.addEventListener('mouseenter', onEnter)
+      l.addEventListener('focus', onEnter)
+    })
+    nav.addEventListener('mouseleave', onLeave)
+
+    return () => {
+      links.forEach(l => {
+        l.removeEventListener('mouseenter', onEnter)
+        l.removeEventListener('focus', onEnter)
+      })
+      nav.removeEventListener('mouseleave', onLeave)
+    }
+  }, [])
+
+  useEffect(() => {
+    // Debug: log featuresOpen to the console so you can verify the toggle when hovering/clicking
+    try { console.debug('featuresOpen ->', featuresOpen) } catch(e) {}
+  }, [featuresOpen])
+
+  function moveUnderlineTo(el){
+    const ul = underlineRef.current
+    const nav = navRef.current
+    if (!ul || !nav) return
+    if (!el){
+      ul.style.opacity = '0'
+      return
+    }
+    const navRect = nav.getBoundingClientRect()
+    const rect = el.getBoundingClientRect()
+    const left = rect.left - navRect.left
+    const width = rect.width
+    ul.style.transform = `translateX(${left}px)`
+    ul.style.width = `${width}px`
+    ul.style.opacity = '1'
+  }
+
+  // Make nav links full-height and inline-flex so anchors and the Features button share the same box model
+  // Add cursor-pointer so interactive items show the pointer cursor
+  const linkBase = 'nav-link inline-flex items-center h-full whitespace-nowrap text-base md:text-lg px-2 md:px-3 font-medium leading-none cursor-pointer'
+  // Remove bottom padding from active link (we use the moving underline) to keep all links on the same line
+  const activeClass = 'text-slate-900 dark:text-white'
+  const inactiveClass = 'text-slate-700 dark:text-slate-300 hover:text-slate-900'
+
   return (
-    <header className="bg-white dark:bg-slate-800 border-b relative">
-      <a href="#main-content" className="absolute left-4 -top-12 focus:top-4 focus:left-4 bg-white dark:bg-slate-900 text-indigo-600 px-3 py-2 rounded shadow z-50">Skip to content</a>
-      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-        <Link to="/" className="text-xl font-bold text-slate-800 dark:text-slate-100">Sphuta</Link>
-        <nav className="space-x-4 hidden md:block">
-          <NavLink to="/" className={({isActive}) => isActive ? 'text-indigo-600' : 'text-slate-600 dark:text-slate-300'}>Home</NavLink>
-          <NavLink to="/projects" className={({isActive}) => isActive ? 'text-indigo-600' : 'text-slate-600 dark:text-slate-300'}>Projects</NavLink>
-          <NavLink to="/pricing" className={({isActive}) => isActive ? 'text-indigo-600' : 'text-slate-600 dark:text-slate-300'}>Pricing</NavLink>
-          <NavLink to="/contact" className={({isActive}) => isActive ? 'text-indigo-600' : 'text-slate-600 dark:text-slate-300'}>Contact</NavLink>
+    <header className="sticky top-0 z-50 bg-white dark:bg-slate-900">
+      {/* fixed inner header height ensures h-full nav links line up exactly */}
+      <div className="container mx-auto px-6 h-28 flex items-center justify-between">
+        {/* Logo left */}
+        <Link to="/" className="flex items-center gap-3 flex-shrink-0">
+          <img src="/favicon.svg" alt="Sphuta" className="h-10 w-auto" />
+        </Link>
+
+        {/* Nav right */}
+        <nav ref={navRef} className="hidden md:flex md:items-center md:gap-4 whitespace-nowrap relative h-full" aria-label="Main navigation">
+          <NavLink to="/" className={({ isActive }) => `${linkBase} ${isActive ? activeClass : inactiveClass}`} end>
+            Home
+          </NavLink>
+
+          <div
+            className="relative inline-flex items-center h-full"
+            onMouseEnter={() => setFeaturesOpen(true)}
+            onMouseLeave={() => setFeaturesOpen(false)}
+            onFocus={() => setFeaturesOpen(true)}
+            onBlur={() => setFeaturesOpen(false)}
+            onKeyDown={(e) => { if (e.key === 'Escape') setFeaturesOpen(false) }}
+          >
+            <button className={`${linkBase} ${inactiveClass} gap-1`} aria-haspopup="true" aria-expanded={featuresOpen} onClick={() => setFeaturesOpen(v => !v)}>
+              {/* Features text, arrow sits to the right */}
+              <span>Features</span>
+
+              {/* Arrow wrapper: fixed-size so chevrons overlap and switching opacity doesn't shift layout */}
+              <span className="relative inline-block w-3 h-3 ml-2">
+                {/* Up chevron (closed) */}
+                <svg className={`absolute inset-0 w-3 h-3 transition-opacity duration-150 ${featuresOpen ? 'opacity-0' : 'opacity-100'}`} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M6 12l4-4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                {/* Down chevron (open) */}
+                <svg className={`absolute inset-0 w-3 h-3 transition-opacity duration-150 ${featuresOpen ? 'opacity-100' : 'opacity-0'}`} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M6 8l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </span>
+            </button>
+            {/* place submenu just below the header (top-full) and use a larger upward offset when closed to animate downward */}
+            <div className={`absolute right-0 top-full mt-0 w-48 bg-white dark:bg-slate-800 border rounded shadow-md z-50 transform transition-opacity transition-transform duration-250 delay-75 ease-out ${featuresOpen ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 -translate-y-6 pointer-events-none'}`}>
+                <Link to="/features" onClick={() => setFeaturesOpen(false)} className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">Overview</Link>
+                <Link to="/features#ux" onClick={() => setFeaturesOpen(false)} className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">UX</Link>
+                <Link to="/features#security" onClick={() => setFeaturesOpen(false)} className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">Security</Link>
+              </div>
+          </div>
+
+          <NavLink to="/pricing" className={({ isActive }) => `${linkBase} ${isActive ? activeClass : inactiveClass}`}>
+            Pricing
+          </NavLink>
+
+          <NavLink to="/contact" className={({ isActive }) => `${linkBase} ${isActive ? activeClass : inactiveClass}`}>
+            Contact
+          </NavLink>
+
+          {/* underline element */}
+          <span ref={underlineRef} className="absolute bottom-0 left-0 h-0.5 bg-slate-900 dark:bg-white transition-all duration-300 opacity-0" aria-hidden="true"></span>
         </nav>
 
+        {/* Right controls: minimal */}
         <div className="flex items-center gap-3">
-          <button
-            aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
-            title={dark ? 'Light mode' : 'Dark mode'}
-            onClick={() => setDark(d => !d)}
-            className="p-2 rounded hover:bg-slate-100 dark:hover:bg-slate-700"
-          >
-            {dark ? (
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zM4.22 4.22a1 1 0 011.42 0l.7.7a1 1 0 11-1.42 1.42l-.7-.7a1 1 0 010-1.42zM2 10a1 1 0 011-1h1a1 1 0 110 2H3a1 1 0 01-1-1zm8 6a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM15.78 4.22a1 1 0 010 1.42l-.7.7A1 1 0 1113.66 5.3l.7-.7a1 1 0 011.42 0zM17 9a1 1 0 011 1v.01a1 1 0 11-2 0V10a1 1 0 011-1zM4.22 15.78a1 1 0 011.42 0l.7.7a1 1 0 11-1.42 1.42l-.7-.7a1 1 0 010-1.42zM15.78 15.78a1 1 0 010 1.42l-.7.7a1 1 0 11-1.42-1.42l.7-.7a1 1 0 011.42 0z" /></svg>
+          <button onClick={() => setDark(d => !d)} className="hidden">Theme</button>
+
+          <button className="md:hidden p-2 rounded hover:bg-slate-100 dark:hover:bg-slate-700" onClick={() => setMobileOpen(o => !o)} aria-expanded={mobileOpen} aria-label={mobileOpen ? 'Close menu' : 'Open menu'}>
+            {mobileOpen ? (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
             ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-700" viewBox="0 0 20 20" fill="currentColor"><path d="M17.293 13.293A8 8 0 116.707 2.707 8 8 0 0017.293 13.293z"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16"/></svg>
             )}
           </button>
+        </div>
+      </div>
 
-          <div className="md:hidden">
-            {/* simple mobile menu placeholder */}
-            <MobileMenu />
-          </div>
+      {/* Mobile menu */}
+      <div className={`md:hidden transition-all duration-200 ${mobileOpen ? 'max-h-screen' : 'max-h-0 overflow-hidden'}`}>
+        <div className="px-6 pb-6">
+          <nav className="flex flex-col gap-3 py-4">
+            <NavLink to="/" onClick={() => setMobileOpen(false)} className="block text-base font-medium text-slate-800">Home</NavLink>
+            <details className="group">
+              <summary className="flex items-center justify-between cursor-pointer text-base font-medium text-slate-800">Features
+                <svg className="w-4 h-4 ml-2" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 8l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </summary>
+              <div className="mt-2 pl-4 flex flex-col gap-2">
+                <Link to="/features" onClick={() => setMobileOpen(false)} className="text-slate-700">Overview</Link>
+                <Link to="/features#ux" onClick={() => setMobileOpen(false)} className="text-slate-700">UX</Link>
+                <Link to="/features#security" onClick={() => setMobileOpen(false)} className="text-slate-700">Security</Link>
+              </div>
+            </details>
+            <NavLink to="/pricing" onClick={() => setMobileOpen(false)} className="block text-base font-medium text-slate-800">Pricing</NavLink>
+            <NavLink to="/contact" onClick={() => setMobileOpen(false)} className="block text-base font-medium text-slate-800">Contact</NavLink>
+          </nav>
         </div>
       </div>
     </header>
-  )
-}
-
-function MobileMenu(){
-  return (
-    <details className="relative">
-      <summary className="cursor-pointer">Menu</summary>
-      <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-slate-800 border rounded shadow p-2">
-        <nav className="flex flex-col gap-2">
-          <Link to="/">Home</Link>
-          <Link to="/projects">Projects</Link>
-          <Link to="/pricing">Pricing</Link>
-          <Link to="/contact">Contact</Link>
-        </nav>
-      </div>
-    </details>
   )
 }

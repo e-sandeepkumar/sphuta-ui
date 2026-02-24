@@ -2,22 +2,119 @@
 @tailwind components;
 @tailwind utilities;
 
+:root { font-size: 18px; }
+
+/* Reset box-sizing and remove default body margin to avoid unexpected extra space */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0; /* ensure no default page margin */
+}
+
+/* Make the root and body fill the viewport and disable body scrolling so main is the single scroll container */
 html, body, #root {
   height: 100%;
+  overflow-x: hidden;
+  overflow-y: hidden; /* body should not scroll; main will */
 }
 
 body {
   @apply bg-white text-slate-800;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  line-height: 1.6;
 }
 
-.dark body {
-  @apply bg-slate-900 text-slate-100;
+.dark body { @apply bg-slate-900 text-slate-100; }
+
+a { @apply text-indigo-600; }
+.dark a { @apply text-indigo-400; }
+
+.h-hero { font-size: 3.5rem; }
+@media (min-width: 768px) { .h-hero { font-size: 4.5rem; } }
+
+/* Nav link underline disabled per-link; moving underline span used */
+.nav-link { position: relative; }
+.nav-link::after { display: none !important; }
+
+nav[aria-label="Main navigation"] > span[aria-hidden="true"] {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: currentColor;
+  transition: transform 220ms cubic-bezier(.4,0,.2,1), width 220ms cubic-bezier(.4,0,.2,1), opacity 200ms;
+  z-index: 30;
 }
 
-a {
-  @apply text-indigo-600;
+nav[aria-label="Main navigation"] .nav-link[aria-current="page"]::after { display: none !important; }
+nav[aria-label="Main navigation"] .nav-link[aria-current="page"]:hover::after { transform: scaleX(0) !important; opacity: 0 !important; }
+
+/* Ensure nav-link children align identically: inline-flex, vertically centered, and match nav height */
+nav[aria-label="Main navigation"] .nav-link {
+  display: inline-flex;
+  align-items: center;
+  height: 100%;
 }
 
-.dark a {
-  @apply text-indigo-400;
+/* Normalize button elements inside the main nav so they match anchor nav-links */
+nav[aria-label="Main navigation"] button {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  line-height: 1;
+  height: 100%;
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
 }
+
+/* Ensure SVG icons inside nav items visually center */
+nav[aria-label="Main navigation"] svg { vertical-align: middle; }
+
+/* Hide horizontal scrollbars only (WebKit) */
+html::-webkit-scrollbar, body::-webkit-scrollbar { height: 0; }
+
+/* Make the app's main content the only scroll container */
+main#main-content {
+  position: relative;
+  overflow-y: auto; /* this is the one scroll container */
+  overflow-x: hidden; /* hide horizontal scrollbar */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Ensure images and media don't cause horizontal overflow */
+img, video, iframe {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.page-slide-enter,
+.page-slide-enter-active,
+.page-slide-enter-done,
+.page-slide-exit,
+.page-slide-exit-active,
+.page-slide-exit-done {
+  position: relative;
+  width: 100%;
+  display: block;
+}
+
+.page-slide-enter { transform: translateX(16px); opacity: 0; }
+.page-slide-enter.page-slide-enter-active { transform: translateX(0); opacity: 1; transition: transform 420ms cubic-bezier(.2,.9,.2,1), opacity 420ms cubic-bezier(.2,.9,.2,1); }
+.page-slide-enter-done { transform: translateX(0); opacity: 1; }
+
+.page-slide-exit { transform: translateX(0); opacity: 1; }
+.page-slide-exit-active { transform: translateX(-12px); opacity: 0; transition: transform 300ms cubic-bezier(.2,.9,.2,1), opacity 300ms cubic-bezier(.2,.9,.2,1); }
+.page-slide-exit-done { transform: translateX(-12px); opacity: 0; }
+
+.page-wrapper > * { will-change: transform, opacity; animation: none; }
+
+@keyframes slideInFromRight { from { transform: translateX(16px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes slideOutToLeft { from { transform: translateX(0); opacity: 1; } to { transform: translateX(-12px); opacity: 0; } }
+
+.slide-in { animation: slideInFromRight 420ms cubic-bezier(.2,.9,.2,1) both; }
+.slide-out { animation: slideOutToLeft 300ms cubic-bezier(.2,.9,.2,1) both; }
