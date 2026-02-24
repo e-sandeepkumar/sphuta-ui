@@ -40,12 +40,15 @@ a { @apply text-indigo-600; }
 
 nav[aria-label="Main navigation"] > span[aria-hidden="true"] {
   position: absolute;
-  bottom: 0;
   left: 0;
+  /* top is controlled via JS (set on the element), don't set bottom here */
   height: 2px;
   background: currentColor;
-  transition: transform 220ms cubic-bezier(.4,0,.2,1), width 220ms cubic-bezier(.4,0,.2,1), opacity 200ms;
-  z-index: 30;
+  /* we position the underline using `left` in JS, so transition left + width + opacity */
+  transition: left 220ms cubic-bezier(.4,0,.2,1), width 220ms cubic-bezier(.4,0,.2,1), opacity 200ms;
+  will-change: left, width, opacity;
+  z-index: 40; /* ensure underline sits above nav background but below overlaid elements if needed */
+  pointer-events: none;
 }
 
 nav[aria-label="Main navigation"] .nav-link[aria-current="page"]::after { display: none !important; }

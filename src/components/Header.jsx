@@ -81,11 +81,17 @@ export default function Header() {
       return
     }
     const navRect = nav.getBoundingClientRect()
-    const rect = el.getBoundingClientRect()
+    // Prefer the label's rect (so underline sits under the text) otherwise use the element rect
+    const label = el.querySelector ? el.querySelector('.nav-label') : null
+    const rect = (label && label.getBoundingClientRect) ? label.getBoundingClientRect() : el.getBoundingClientRect()
     const left = rect.left - navRect.left
     const width = rect.width
-    ul.style.transform = `translateX(${left}px)`
+    // Place underline exactly at the label's bottom so it appears directly under the menu text
+    const top = rect.bottom - navRect.top
+    // Position underline using `left` and `top` for direct alignment; width and opacity remain animated
+    ul.style.left = `${left}px`
     ul.style.width = `${width}px`
+    ul.style.top = `${top}px`
     ul.style.opacity = '1'
   }
 
@@ -108,23 +114,23 @@ export default function Header() {
         {/* Nav right */}
         <nav ref={navRef} className="hidden md:flex md:items-center md:gap-4 whitespace-nowrap relative h-full" aria-label="Main navigation">
           <NavLink to="/" className={({ isActive }) => `${linkBase} ${isActive ? activeClass : inactiveClass}`} end>
-            Home
+            <span className="nav-label">Home</span>
           </NavLink>
 
           <div
-            className="relative inline-flex items-center h-full"
-            onMouseEnter={() => setFeaturesOpen(true)}
-            onMouseLeave={() => setFeaturesOpen(false)}
-            onFocus={() => setFeaturesOpen(true)}
-            onBlur={() => setFeaturesOpen(false)}
-            onKeyDown={(e) => { if (e.key === 'Escape') setFeaturesOpen(false) }}
-          >
-            <button className={`${linkBase} ${inactiveClass} gap-1`} aria-haspopup="true" aria-expanded={featuresOpen} onClick={() => setFeaturesOpen(v => !v)}>
-              {/* Features text, arrow sits to the right */}
-              <span>Features</span>
+             className="relative inline-flex items-center h-full"
+             onMouseEnter={() => setFeaturesOpen(true)}
+             onMouseLeave={() => setFeaturesOpen(false)}
+             onFocus={() => setFeaturesOpen(true)}
+             onBlur={() => setFeaturesOpen(false)}
+             onKeyDown={(e) => { if (e.key === 'Escape') setFeaturesOpen(false) }}
+           >
+             <button className={`${linkBase} ${inactiveClass} gap-1`} aria-haspopup="true" aria-expanded={featuresOpen} onClick={() => setFeaturesOpen(v => !v)}>
+               {/* Features text, arrow sits to the right */}
+               <span className="nav-label">Features</span>
 
-              {/* Arrow wrapper: fixed-size so chevrons overlap and switching opacity doesn't shift layout */}
-              <span className="relative inline-block w-3 h-3 ml-2">
+               {/* Arrow wrapper: fixed-size so chevrons overlap and switching opacity doesn't shift layout */}
+               <span className="relative inline-block w-3 h-3 ml-2">
                 {/* Up chevron (closed) */}
                 <svg className={`absolute inset-0 w-3 h-3 transition-opacity duration-150 ${featuresOpen ? 'opacity-0' : 'opacity-100'}`} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M6 12l4-4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 {/* Down chevron (open) */}
@@ -140,15 +146,15 @@ export default function Header() {
           </div>
 
           <NavLink to="/pricing" className={({ isActive }) => `${linkBase} ${isActive ? activeClass : inactiveClass}`}>
-            Pricing
+            <span className="nav-label">Pricing</span>
           </NavLink>
 
           <NavLink to="/contact" className={({ isActive }) => `${linkBase} ${isActive ? activeClass : inactiveClass}`}>
-            Contact
+            <span className="nav-label">Contact</span>
           </NavLink>
 
-          {/* underline element */}
-          <span ref={underlineRef} className="absolute bottom-0 left-0 h-0.5 bg-slate-900 dark:bg-white transition-all duration-300 opacity-0" aria-hidden="true"></span>
+          {/* underline element: positioned via JS (set top) so it sits right under each link's bottom */}
+          <span ref={underlineRef} className="absolute left-0 h-0.5 bg-slate-900 dark:bg-white transition-all duration-300 opacity-0" aria-hidden="true" style={{top: '0px'}}></span>
         </nav>
 
         {/* Right controls: minimal */}
