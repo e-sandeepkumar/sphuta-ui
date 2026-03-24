@@ -154,3 +154,254 @@ img, video, iframe {
   box-shadow: 0 0 0 3px rgba(99,102,241,0.18);
   border-radius: 0.25rem;
 }
+
+/* =============================================
+   SCROLL REVEAL ANIMATIONS
+   ============================================= */
+
+/* Base hidden state */
+.reveal {
+  opacity: 0;
+  transform: translateY(48px);
+  transition: opacity 0.7s cubic-bezier(.2,.9,.2,1), transform 0.7s cubic-bezier(.2,.9,.2,1);
+  will-change: opacity, transform;
+}
+
+.reveal.reveal--left {
+  transform: translateX(-60px);
+}
+
+.reveal.reveal--right {
+  transform: translateX(60px);
+}
+
+.reveal.reveal--scale {
+  transform: scale(0.92) translateY(24px);
+}
+
+/* Visible state */
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0) translateX(0) scale(1);
+}
+
+/* Staggered children delay */
+.reveal-stagger > *:nth-child(1) { transition-delay: 0.05s; }
+.reveal-stagger > *:nth-child(2) { transition-delay: 0.15s; }
+.reveal-stagger > *:nth-child(3) { transition-delay: 0.25s; }
+.reveal-stagger > *:nth-child(4) { transition-delay: 0.35s; }
+.reveal-stagger > *:nth-child(5) { transition-delay: 0.45s; }
+
+/* =============================================
+   HERO ENHANCEMENTS
+   ============================================= */
+
+.hero-gradient {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #2563eb 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-gradient::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 70% 50%, rgba(255,255,255,0.08) 0%, transparent 65%),
+              radial-gradient(ellipse at 10% 80%, rgba(99,102,241,0.3) 0%, transparent 55%);
+  pointer-events: none;
+}
+
+/* Floating orb animation */
+.hero-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  animation: floatOrb 8s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes floatOrb {
+  0%   { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(20px, -30px) scale(1.1); }
+}
+
+/* =============================================
+   GLASSMORPHISM CARD
+   ============================================= */
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  border-radius: 1rem;
+}
+
+/* =============================================
+   CARD HOVER LIFT EFFECT
+   ============================================= */
+
+.card-lift {
+  transition: transform 0.3s cubic-bezier(.2,.9,.2,1), box-shadow 0.3s cubic-bezier(.2,.9,.2,1);
+}
+
+.card-lift:hover {
+  transform: translateY(-6px) scale(1.015);
+  box-shadow: 0 20px 40px rgba(79, 70, 229, 0.18), 0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* =============================================
+   SHIMMER / SKELETON EFFECT
+   ============================================= */
+
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position: 600px 0; }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e7ff 50%, #f0f0f0 75%);
+  background-size: 600px 100%;
+  animation: shimmer 2s infinite linear;
+}
+
+/* =============================================
+   GRADIENT TEXT
+   ============================================= */
+
+.gradient-text {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed, #06b6d4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* =============================================
+   SECTION DIVIDER WAVE
+   ============================================= */
+
+.wave-divider {
+  width: 100%;
+  overflow: hidden;
+  line-height: 0;
+}
+
+.wave-divider svg {
+  display: block;
+  width: 100%;
+}
+
+/* =============================================
+   BUTTON SHINE EFFECT
+   ============================================= */
+
+.btn-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-shine::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -75%;
+  width: 50%;
+  height: 200%;
+  background: rgba(255,255,255,0.25);
+  transform: skewX(-20deg);
+  transition: left 0.5s ease;
+}
+
+.btn-shine:hover::after {
+  left: 125%;
+}
+
+/* =============================================
+   FEATURE ICON GLOW
+   ============================================= */
+
+.icon-glow {
+  transition: filter 0.3s ease, transform 0.3s ease;
+}
+
+.icon-glow:hover {
+  filter: drop-shadow(0 0 8px rgba(79,70,229,0.6));
+  transform: scale(1.12);
+}
+
+/* =============================================
+   PULSING BADGE
+   ============================================= */
+
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(79,70,229,0.4); }
+  70%  { box-shadow: 0 0 0 10px rgba(79,70,229,0); }
+  100% { box-shadow: 0 0 0 0 rgba(79,70,229,0); }
+}
+
+.pulse-badge {
+  animation: pulse-ring 2s ease-out infinite;
+}
+
+/* =============================================
+   FOOTER SLIDE-UP
+   ============================================= */
+
+.footer-reveal {
+  opacity: 0;
+  transform: translateY(100%);
+  transition: opacity 0.6s cubic-bezier(.2,.9,.2,1), transform 0.6s cubic-bezier(.2,.9,.2,1);
+  will-change: opacity, transform;
+}
+
+.footer-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* =============================================
+   IMAGE ZOOM ON HOVER
+   ============================================= */
+
+.img-zoom {
+  overflow: hidden;
+}
+
+.img-zoom img {
+  transition: transform 0.5s cubic-bezier(.2,.9,.2,1);
+}
+
+.img-zoom:hover img {
+  transform: scale(1.08);
+}
+
+/* =============================================
+   SCROLLBAR STYLING (main content)
+   ============================================= */
+
+main#main-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+main#main-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+main#main-content::-webkit-scrollbar-thumb {
+  background: #c7d2fe;
+  border-radius: 3px;
+}
+
+main#main-content::-webkit-scrollbar-thumb:hover {
+  background: #4f46e5;
+}
+
+/* =============================================
+   BACKGROUND PATTERN
+   ============================================= */
+
+.dot-pattern {
+  background-image: radial-gradient(circle, #e0e7ff 1.5px, transparent 1.5px);
+  background-size: 28px 28px;
+}
